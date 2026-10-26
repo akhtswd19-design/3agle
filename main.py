@@ -118,8 +118,7 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
-        "مرحباً بك في **متجر العاقل** للملفات العسكرية! 🛡️
-اضغط على الزر أدناه لفتح التطبيق المصغر للمتجر.",
+          "مرحباً بك في متجر العاقل للملفات العسكرية! 🛡️ اضغط على الزر أدناه لفتح التطبيق المصغر للمتجر.",
         reply_markup=reply_markup,
         parse_mode="Markdown"
     )
