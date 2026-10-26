@@ -405,7 +405,7 @@ async def admin_reply_ticket(data: AdminReplyModel, x_user_id: int = Header(...)
 
         # Send Telegram notification to user
         try:
-await bot_app.bot.send_message(
+              await bot_app.bot.send_message(
                 chat_id=data.target_user_id,
                 text=f"💬 **رد من الدعم الفني (متجر العاقل):**\n\n{data.text}",
                 parse_mode="Markdown"
