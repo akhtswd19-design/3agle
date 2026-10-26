@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>متجر العاقل</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0e12;
+            --card-bg: rgba(22, 25, 35, 0.75);
+            --card-border: rgba(212, 175, 55, 0.2);
+            --accent-gold: #d4af37;
+            --accent-gold-glow: rgba(212, 175, 55, 0.4);
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --star-color: #ffc107;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Canvas Particle Background */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #08080a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .splash-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+            text-shadow: 0 0 25px var(--accent-gold-glow);
+            letter-spacing: 2px;
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        .splash-sub {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            letter-spacing: 1px;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.04); }
+        }
+
+        /* App Container */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            padding-bottom: 80px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            padding: 20px 18px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(13, 14, 18, 0.85);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #d4af37, #8a7322);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 0 12px var(--accent-gold-glow);
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .user-badge {
+            font-size: 0.85rem;
+            background: rgba(212, 175, 55, 0.12);
+            color: var(--accent-gold);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+        }
+
+        /* Main View Slider */
+        .view-section {
+            display: none;
+            padding: 16px;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .view-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Section Titles */
+        .section-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Product Cards */
+        .products-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .product-card:active {
+            transform: scale(0.98);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background-color: #1a1d24;
+            display: block;
+        }
+
+        .product-info {
+            padding: 14px;
+        }
+
+        .product-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .product-desc {
+            font-size: 0.88rem;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .price-tag {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-sar {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
+
+        .price-stars {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--star-color);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-buy {
+            background: linear-gradient(135deg, #d4af37, #b89320);
+            color: #000;
+            font-weight: 700;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--accent-gold-glow);
+            transition: transform 0.15s ease;
+        }
+
+        .btn-buy:active {
+            transform: scale(0.95);
+        }
+
+        /* Reviews Section */
+        .reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .review-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .review-user {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--accent-gold);
+        }
+
+        .review-rating {
+            color: var(--star-color);
+            font-size: 0.85rem;
+        }
+
+        .review-text {
+            font-size: 0.88rem;
+            color: var(--text-main);
+            line-height: 1.4;
+        }
+
+        .review-date {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 6px;
+            text-align: left;
+        }
+
+        /* Support Box */
+        .support-card {
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px dashed var(--accent-gold);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .support-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 6px;
+        }
+
+        .support-desc {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+        }
+
+        .btn-support {
+            background: transparent;
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: rgba(13, 14, 18, 0.92);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(212, 175, 55, 0.15);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-sub);
+            font-size: 0.78rem;
+            gap: 4px;
+            width: 33%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: color 0.25s ease;
+        }
+
+        .nav-item.active {
+            color: var(--accent-gold);
+            font-weight: 700;
+        }
+
+        .nav-icon {
+            font-size: 1.3rem;
+        }
+
+        /* Forms Modal / Admin Section */
+        .admin-box {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-gold);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-gold);
+            outline: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* Ticket Chat Modal */
+        .ticket-box {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-bg"></canvas>
+
+    <!-- Splash Screen (4 Seconds) -->
+    <div id="splash-screen">
+        <div class="splash-title">متجر العاقل</div>
+        <div class="splash-sub">للملفات والخدمات العسكرية</div>
+    </div>
+
+    <div class="app-container">
+        <!-- Top Bar -->
+        <header>
+            <div class="brand">
+                <div class="brand-logo">ع</div>
+                <div class="brand-name">متجر العاقل</div>
+            </div>
+            <div id="user-role-badge" class="user-badge">عميل</div>
+        </header>
+
+        <!-- Page 1: Products -->
+        <div id="view-products" class="view-section active">
+            <div class="section-header">
+                <span>المنتجات العسكرية</span>
+                <span style="font-size:0.8rem; color:var(--text-sub);" id="products-count">0 منتج</span>
+            </div>
+            <div class="products-grid" id="products-list">
+                <!-- Dynamic Products loaded via JS -->
+            </div>
+        </div>
+
+        <!-- Page 2: Customer Reviews & Support -->
+        <div id="view-reviews" class="view-section">
+            <div class="section-header">
+                <span>تقييمات العملاء</span>
+                <button class="btn-support" onclick="toggleReviewForm()">+ إضافة تقييم</button>
+            </div>
+
+            <div id="add-review-form" style="display:none;" class="admin-box">
+                <div class="form-group">
+                    <label>التقييم (1 إلى 5)</label>
+                    <select id="rev-rating" class="form-control">
+                        <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                        <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                        <option value="3">⭐⭐⭐ (3/5)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>رأيك بالخدمة</label>
+                    <textarea id="rev-comment" class="form-control" rows="3" placeholder="اكتب تقييمك هنا..."></textarea>
+                </div>
+                <button class="btn-submit" onclick="submitReview()">إرسال التقييم</button>
+            </div>
+
+            <div class="reviews-list" id="reviews-container">
+                <!-- Dynamic Reviews -->
+            </div>
+
+            <!-- Support Ticket Box -->
+            <div class="support-card">
+                <div class="support-title">الدعم الفني المباشر</div>
+                <div class="support-desc">هل لديك استفسار أو واجهت مشكلة؟ افتح تذكرة دعم وسيرد عليك الإدمن مباشرة.</div>
+                <button class="btn-support" onclick="openSupportTicketModal()">فتح تذكرة دعم فني</button>
+            </div>
+        </div>
+
+        <!-- Page 3: Hidden Admin Panel (Visible to Admin Only) -->
+        <div id="view-admin" class="view-section">
+            <div class="section-header">
+                <span>لوحة تحكم الإدارة</span>
+            </div>
+
+            <!-- Add Product -->
+            <div class="admin-box">
+                <h4 style="color:var(--accent-gold); margin-bottom:10px;">إضافة منتج جديد</h4>
+                <div class="form-group">
+                    <label>اسم المنتج</label>
+                    <input type="text" id="prod-name" class="form-control" placeholder="مثال: دليل الإجراءات العسكرية">
+                </div>
+                <div class="form-group">
+                    <label>السعر بالريال السعودي (SAR)</label>
+                    <input type="number" id="prod-price" class="form-control" placeholder="20" oninput="calculateStarsPreview()">
+                    <span id="stars-preview" style="font-size:0.8rem; color:var(--star-color); margin-top:4px; display:block;"></span>
+                </div>
+                <div class="form-group">
+                    <label>وصف المنتج</label>
+                    <textarea id="prod-desc" class="form-control" rows="2" placeholder="تفاصيل المنتج..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>رابط الملف / مجموعات التلجرام الخاص بالمنتج</label>
+                    <input type="text" id="prod-link" class="form-control" placeholder="https://t.me/...">
+                </div>
+                <div class="form-group">
+                    <label>رفع صورة المنتج</label>
+                    <input type="file" id="prod-image" class="form-control" accept="image/*">
+                </div>
+                <button class="btn-submit" onclick="addProduct()">حفظ وإرسال إشعار للعملاء</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="admin-box">
+                <h4 style="color:var(--accent-gold); margin-bottom:10px;">إحصائيات المبيعات</h4>
+                <div id="admin-stats-content" style="font-size:0.9rem; line-height:1.6;">
+                    جاري تحميل الإحصائيات...
+                </div>
+            </div>
+
+            <!-- Tickets Admin -->
+            <div class="admin-box">
+                <h4 style="color:var(--accent-gold); margin-bottom:10px;">تذاكر الدعم الفني</h4>
+                <div id="admin-tickets-list">
+                    <!-- Dynamic admin tickets -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('products', this)">
+            <span class="nav-icon">🛒</span>
+            <span>المنتجات</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('reviews', this)">
+            <span class="nav-icon">⭐</span>
+            <span>التقييمات والدعم</span>
+        </button>
+        <button id="admin-nav-btn" class="nav-item" style="display:none;" onclick="switchTab('admin', this)">
+            <span class="nav-icon">⚙️</span>
+            <span>الإدارة</span>
+        </button>
+    </nav>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let currentUser = tg.initDataUnsafe?.user || { id: 0, first_name: "زائر" };
+        let isAdmin = false;
+
+        // Splash screen 4-second timer
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 800);
+        }, 4000);
+
+        // Particle background animation
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedY = Math.random() * -0.5 - 0.1;
+                this.opacity = Math.random() * 0.7 + 0.2;
+            }
+            update() {
+                this.y += this.speedY;
+                if (this.y < 0) {
+                    this.y = canvas.height;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 45; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Switch Tabs smoothly
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+
+            btn.classList.add('active');
+            const target = document.getElementById(`view-${tabId}`);
+            if (target) {
+                target.classList.add('active');
+            }
+        }
+
+        // Live Stars Calculator Preview
+        function calculateStarsPreview() {
+            const sar = parseFloat(document.getElementById('prod-price').value) || 0;
+            const stars = Math.ceil(sar * 1.5);
+            document.getElementById('stars-preview').innerText = `يعادل تقريباً: ${stars} ⭐️ (نجوم تلجرام)`;
+        }
+
+        // Check Admin Status
+        async function checkAdminStatus() {
+            try {
+                const res = await fetch(`/api/check-admin?user_id=${currentUser.id}`);
+                const data = await res.json();
+                if (data.is_admin) {
+                    isAdmin = true;
+                    document.getElementById('admin-nav-btn').style.display = 'flex';
+                    document.getElementById('user-role-badge').innerText = 'إدمن المتجر';
+                    loadAdminData();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // Load Products
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/products');
+                const products = await res.json();
+                const container = document.getElementById('products-list');
+                document.getElementById('products-count').innerText = `${products.length} منتجات`;
+                container.innerHTML = '';
+
+                products.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <img src="${p.image_url}" class="product-img" alt="${p.title}" onerror="this.src='https://via.placeholder.com/400x200?text=المتجر+العسكري'">
+                        <div class="product-info">
+                            <div class="product-title">${p.title}</div>
+                            <div class="product-desc">${p.description}</div>
+                            <div class="product-footer">
+                                <div class="price-tag">
+                                    <span class="price-sar">${p.price_sar} ر.س</span>
+                                    <span class="price-stars">⭐️ ${p.stars_price}</span>
+                                </div>
+                                <button class="btn-buy" onclick="buyProduct(${p.id})">شراء الآن</button>
+                            </div>
+                            ${isAdmin ? `<button onclick="deleteProduct(${p.id})" style="background:#dc2626; color:#fff; border:none; padding:4px 10px; border-radius:6px; margin-top:10px; font-size:0.8rem; cursor:pointer;">حذف المنتج 🗑️</button>` : ''}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        // Trigger Telegram Stars Payment via Invoice link
+        async function buyProduct(productId) {
+            try {
+                const res = await fetch('/api/create-invoice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId, user_id: currentUser.id })
+                });
+                const data = await res.json();
+                if (data.invoice_url) {
+                    tg.openInvoice(data.invoice_url, (status) => {
+                        if (status === 'paid') {
+                            tg.showAlert('✨ تم الدفع بنجاح! تم إرسال رابط الملفات لك في محادثة البوت المباشرة.');
+                        } else {
+                            tg.showAlert('تم إلغاء عملية الدفع أو لم تكتمل.');
+                        }
+                    });
+                } else {
+                    tg.showAlert(data.error || 'حدث خطأ في إنشاء الفاتورة');
+                }
+            } catch (e) {
+                tg.showAlert('تعذر الاتصال بالخادم.');
+            }
+        }
+
+        // Add Product (With Image Upload)
+        async function addProduct() {
+            const title = document.getElementById('prod-name').value;
+            const price = document.getElementById('prod-price').value;
+            const desc = document.getElementById('prod-desc').value;
+            const link = document.getElementById('prod-link').value;
+            const fileInput = document.getElementById('prod-image');
+
+            if (!title || !price || !desc || !link) {
+                tg.showAlert('يرجى ملء جميع الحقول المطلوب');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('price_sar', price);
+            formData.append('description', desc);
+            formData.append('file_url', link);
+            formData.append('admin_id', currentUser.id);
+            if (fileInput.files[0]) {
+                formData.append('image', fileInput.files[0]);
+            }
+
+            try {
+                const res = await fetch('/api/admin/add-product', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    tg.showAlert('تم إضافة المنتج بنجاح وإرسال إشعار للعملاء!');
+                    loadProducts();
+                    switchTab('products', document.querySelectorAll('.nav-item')[0]);
+                }
+            } catch (e) { tg.showAlert('خطأ في إضافة المنتج'); }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('هل انت متاكد من حذف المنتج؟')) return;
+            await fetch(`/api/admin/delete-product?id=${id}&admin_id=${currentUser.id}`, { method: 'DELETE' });
+            loadProducts();
+        }
+
+        // Reviews System
+        function toggleReviewForm() {
+            const f = document.getElementById('add-review-form');
+            f.style.display = f.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function loadReviews() {
+            try {
+                const res = await fetch('/api/reviews');
+                const reviews = await res.json();
+                const container = document.getElementById('reviews-container');
+                container.innerHTML = '';
+                reviews.forEach(r => {
+                    const card = document.createElement('div');
+                    card.className = 'review-card';
+                    card.innerHTML = `
+                        <div class="review-header">
+                            <span class="review-user">${r.user_name}</span>
+                            <span class="review-rating">${'⭐'.repeat(r.rating)}</span>
+                        </div>
+                        <div class="review-text">${r.comment}</div>
+                        <div class="review-date">${r.date}</div>
+                        ${isAdmin ? `<button onclick="deleteReview(${r.id})" style="background:#dc2626; color:#fff; border:none; padding:2px 8px; border-radius:4px; margin-top:6px; font-size:0.75rem;">حذف التقييم 🗑️</button>` : ''}
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function submitReview() {
+            const rating = document.getElementById('rev-rating').value;
+            const comment = document.getElementById('rev-comment').value;
+            if (!comment) return tg.showAlert('يرجى كتابة التقييم');
+
+            await fetch('/api/reviews/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_name: currentUser.first_name || "عميل متجر العاقل",
+                    rating: parseInt(rating),
+                    comment: comment
+                })
+            });
+            document.getElementById('rev-comment').value = '';
+            toggleReviewForm();
+            loadReviews();
+            tg.showAlert('شكراً لك على التقييم!');
+        }
+
+        async function deleteReview(id) {
+            await fetch(`/api/admin/delete-review?id=${id}&admin_id=${currentUser.id}`, { method: 'DELETE' });
+            loadReviews();
+        }
+
+        // Tickets System
+        async function openSupportTicketModal() {
+            const msg = prompt('اكتب تفاصيل تذكرة الدعم الفني:');
+            if (!msg) return;
+
+            await fetch('/api/tickets/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: currentUser.id,
+                    user_name: currentUser.first_name || 'عميل',
+                    message: msg
+                })
+            });
+            tg.showAlert('تم فتح تذكرة الدعم الفني وسيتواصل معك الإدمن قريباً.');
+        }
+
+        async function loadAdminData() {
+            // Load stats
+            const resStats = await fetch(`/api/admin/stats?admin_id=${currentUser.id}`);
+            const stats = await resStats.json();
+            document.getElementById('admin-stats-content').innerHTML = `
+                📌 إجمالي عدد المبيعات: <b>${stats.total_sales || 0}</b><br>
+                💰 إجمالي النجوم المحصلة: <b>${stats.total_stars || 0} ⭐️</b><br>
+                🛍️ عدد المنتجات النشطة: <b>${stats.total_products || 0}</b>
+            `;
+
+            // Load Tickets
+            const resTickets = await fetch(`/api/admin/tickets?admin_id=${currentUser.id}`);
+            const tickets = await resTickets.json();
+            const container = document.getElementById('admin-tickets-list');
+            container.innerHTML = '';
+            tickets.forEach(t => {
+                const div = document.createElement('div');
+                div.className = 'ticket-box';
+                div.innerHTML = `
+                    <div style="font-weight:bold; color:var(--accent-gold);">تذكرة من: ${t.user_name} (ID: ${t.user_id})</div>
+                    <div style="font-size:0.85rem; margin:6px 0;">${t.message}</div>
+                    <button onclick="replyTicket(${t.user_id})" style="background:var(--accent-gold); border:none; padding:4px 10px; border-radius:4px; font-weight:bold; cursor:pointer;">الرد في تلجرام 💬</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function replyTicket(userId) {
+            tg.openTelegramLink(`https://t.me/user?id=${userId}`);
+        }
+
+        // Init App
+        checkAdminStatus();
+        loadProducts();
+        loadReviews();
+    </script>
+</body>
+</html>
