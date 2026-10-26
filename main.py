@@ -13,9 +13,9 @@ from telegram import Update, LabeledPrice, InlineKeyboardButton, InlineKeyboardM
 from telegram.ext import Application, CommandHandler, PreCheckoutQueryHandler, MessageHandler, filters, ContextTypes
 
 # Configurations from Environment Variables
-BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_TELEGRAM_BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8843571560:AAEmeIzqgZF5MMeGAsbXz6mfOnnsO7U4Unk")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-app.onrender.com")
-ADMIN_USER_IDS = [int(i.strip()) for i in os.getenv("ADMIN_USER_IDS", "123456789").split(",") if i.strip()]
+ADMIN_USER_IDS = [int(i.strip()) for i in os.getenv("ADMIN_USER_IDS", "1056007305").split(",") if i.strip()]
 SAR_TO_STARS_RATE = 5  # 1 SAR = 5 Telegram Stars
 
 # Initialize FastAPI App
