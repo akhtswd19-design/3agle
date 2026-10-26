@@ -157,7 +157,7 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
                   (user_id, payload, payment.total_amount))
         conn.commit()
         
-  await update.message.reply_text(
+        await update.message.reply_text(
             f"🎉 *تم الشراء بنجاح!\n\nالمنتج: *{title}**\n\nرابط الانضمام واستلام الملفات:\n{link}",
             parse_mode="Markdown"
         )
