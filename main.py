@@ -157,15 +157,15 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
                   (user_id, payload, payment.total_amount))
         conn.commit()
         
-        await update.message.reply_text(
-            f"🎉 **تم الشراء بنجاح!**
+await update.message.reply_text(
+        f"🎉 **تم الشراء بنجاح!**\n\nالمنتج: **{title}**\n\nرابط الانضمام واستلام الملفات:\n{link}",
+        parse_mode="Markdown"
+    )
 
-المنتج: **{title}**
-
-رابط الانضمام واستلام الملفات:
-{link}",
-            parse_mode="Markdown"
-        )
+await update.message.reply_text(
+        f"🎉 **تم الشراء بنجاح!**\n\nالمنتج: **{title}**\n\nرابط الانضمام واستلام الملفات:\n{link}",
+        parse_mode="Markdown"
+    )
     conn.close()
 
 bot_app.add_handler(CommandHandler("start", start_cmd))
