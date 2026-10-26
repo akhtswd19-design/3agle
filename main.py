@@ -289,12 +289,7 @@ async def admin_add_product(
     conn.close()
 
     # Broadcast new product to all clients automatically
-    asyncio.create_task(broadcast_to_all(f"🔥 **منتج جديد في متجر العاقل!**
-
-📌 **{title}**
-💰 السعر: {price_sar} ر.س ({price_stars} ⭐)
-
-{description}"))
+asyncio.create_task(broadcast_to_all(f"📢 *منتج جديد في متجر العاقل!\n\n📌 *{title}**\n\n💰 السعر: {price_sar} ر.س ({price_stars} ⭐)\n\n📝 الوصف: {description}"))
 
     return {"success": True}
 
