@@ -291,7 +291,7 @@ async def admin_add_product(
     # Broadcast new product to all clients automatically
 asyncio.create_task(broadcast_to_all(f"📢 *منتج جديد في متجر العاقل!\n\n📌 *{title}**\n\n💰 السعر: {price_sar} ر.س ({price_stars} ⭐)\n\n📝 الوصف: {description}"))
 
-    return {"success": True}
+return {"success": True}
 
 @app.delete("/api/admin/delete-product/{prod_id}")
 def delete_product(prod_id: int, x_user_id: int = Header(...)):
