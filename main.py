@@ -117,7 +117,7 @@ async def add_product(request):
         return web.json_response({"error": "غير مصرح"}, status=403)
 
     price_sar = float(data.get('price_sar', 0))
-    stars_price = int(price_sar * 1.5)
+    stars_price = int(price_sar * 11)
 
     new_prod = {
         "id": len(products) + 1,
