@@ -133,8 +133,7 @@ async def admin_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("⚙️ فتح لوحة تحكم الأدمن", web_app=WebAppInfo(url=f"{WEBAPP_URL}?admin=true"))]
     ]
     await update.message.reply_text(
-        "أهلاً بك يا مدير المتجر 👑
-من هنا يمكنك التحكم بالمنتجات، الإحصائيات، الرسائل الجماعية، والدعم الفني.",
+        "أهلاً بك يا مدير المتجر 👑 من هنا يمكنك التحكم بالمنتجات، الإحصائيات، الرسائل الجماعية، والدعم الفني.",
         reply_markup=InlineKeyboardMarkup(admin_keyboard)
     )
 
