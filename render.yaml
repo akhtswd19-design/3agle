@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: al-aaqil-store
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: ADMIN_USER_IDS
+        sync: false
