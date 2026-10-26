@@ -98,7 +98,7 @@ def init_db():
 init_db()
 
 # Telegram Bot Setup
-bot_app = Application.builder().token(BOT_TOKEN).build()
+bot_app = None
 
 # Store uploaded images
 os.makedirs("uploads", exist_ok=True)
@@ -419,6 +419,8 @@ app.mount("/", StaticFiles(directory=".", html=True), name="static")
 # Lifespan Runner for Bot + FastAPI
 @app.on_event("startup")
 async def on_startup():
+    global bot_app
+    bot_app = Application.builder().token(BOT_TOKEN).build()
     await bot_app.initialize()
     await bot_app.start()
     await bot_app.updater.start_polling()
