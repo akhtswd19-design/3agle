@@ -224,10 +224,11 @@ async def broadcast_new_product(prod):
 @dp.message(Command("start"))
 async def start_cmd(message: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🛒 فتح متجر العاقل المصغّر", web_app=WebAppInfo(url=WEBHOOK_URL))]
+        [InlineKeyboardButton(text="🧠 موقع بنك الأسئلة", web_app=WebAppInfo(url="https://mog333.onrender.com/"))],
+        [InlineKeyboardButton(text="🛒 موقع المتجر الرسمي", web_app=WebAppInfo(url="https://threeagle-1.onrender.com"))]
     ])
     await message.answer(
-        "أهلاً بك في **متجر العاقل للملفات والخدمات العسكرية** 🎖️\n\nاضغط على الزر أدناه لفتح المتجر المصغر وتصفح المنتجات والدفع الفوري بنجوم تلجرام.",
+        "أهلاً بك في منصة وخدمات **العاقل** 🎖️\n\nاختر الخدمة التي تريد تصفحها من الأزرار أدناه:",
         reply_markup=kb,
         parse_mode="Markdown"
     )
