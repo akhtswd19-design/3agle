@@ -295,6 +295,9 @@ webhook_requests_handler.register(app, path="/webhook")
 setup_application(app, dp, bot=bot)
 
 async def on_startup(bot: Bot):
+    # مسح الاتصال القديم لمنع أي تعارض وتفعيل الوبهوك الجديد نظيفاً
+    await bot.delete_webhook(drop_pending_updates=True)
+    
     full_webhook_url = f"{WEBHOOK_URL}/webhook"
     await bot.set_webhook(full_webhook_url)
     print(f"Webhook set to: {full_webhook_url}")
