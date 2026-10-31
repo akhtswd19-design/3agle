@@ -5,13 +5,14 @@ from aiohttp import web
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import LabeledPrice, PreCheckoutQuery, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from dotenv import load_dotenv
 
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "") # مثال: https://threeagle-1.onrender.com
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -217,7 +218,6 @@ async def get_admin_stats(request):
 
 async def broadcast_new_product(prod):
     msg = f"🌟 **منتج جديد تم إضافته في متجر العاقل!**\n\n📌 **{prod['title']}**\n📝 {prod['description']}\n💰 السعر: {prod['price_sar']} ر.س (⭐️ {prod['stars_price']} نجمة)"
-    # Sending to Admin as broadcast target for now
     await bot.send_message(ADMIN_ID, msg)
 
 # Bot Commands & Payment Processors
@@ -286,16 +286,31 @@ app.router.add_post('/api/tickets/create', create_ticket)
 app.router.add_get('/api/admin/tickets', get_admin_tickets)
 app.router.add_get('/api/admin/stats', get_admin_stats)
 
+# --- Webhook Handler Registration for aiogram ---
+webhook_requests_handler = SimpleRequestHandler(
+    dispatcher=dp,
+    bot=bot,
+)
+webhook_requests_handler.register(app, path="/webhook")
+setup_application(app, dp, bot=bot)
+
+async def on_startup(bot: Bot):
+    full_webhook_url = f"{WEBHOOK_URL}/webhook"
+    await bot.set_webhook(full_webhook_url)
+    print(f"Webhook set to: {full_webhook_url}")
+
+app.on_startup.append(lambda app: on_startup(bot))
+
 async def main():
-    # Set Telegram Bot Webhook or Polling
+    port = int(os.getenv("PORT", 10000))
     runner = web.AppRunner(app)
     await runner.setup()
-    port = int(os.getenv("PORT", 10000))
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
-
     print(f"Server started on port {port}")
-    await dp.start_polling(bot)
+    
+    # Keep the server running forever in webhook mode
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
     asyncio.run(main())
