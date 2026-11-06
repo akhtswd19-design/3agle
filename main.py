@@ -226,7 +226,7 @@ async def start_cmd(message: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🛒 فتح متجر العاقل المصغّر", web_app=WebAppInfo(url=WEBHOOK_URL))],
         [InlineKeyboardButton(text="📚 بنك أسئلة العاقل", url="https://mog333.onrender.com")],
-        [InlineKeyboardButton(text="🎯 موقع تجارب العاقل", url="https://ms43gg.onrender.com")]
+        [InlineKeyboardButton(text="🎯 موقع تجارب العاقل", url="https://ma43gg.onrender.com")]
     ])
     await message.answer(
         "أهلاً بك في **متجر العاقل للملفات والخدمات العسكرية** 🎖️\n\nاختر ما ترغب في فتحه من الأزرار أدناه:",
