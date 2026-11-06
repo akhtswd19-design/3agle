@@ -225,7 +225,8 @@ async def broadcast_new_product(prod):
 async def start_cmd(message: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🛒 فتح متجر العاقل المصغّر", web_app=WebAppInfo(url=WEBHOOK_URL))],
-        [InlineKeyboardButton(text="📚 بنك أسئلة العاقل", url="https://mog333.onrender.com")]
+        [InlineKeyboardButton(text="📚 بنك أسئلة العاقل", url="https://mog333.onrender.com")],
+        [InlineKeyboardButton(text="🎯 موقع تجارب العاقل", url="https://ms43gg.onrender.com")]
     ])
     await message.answer(
         "أهلاً بك في **متجر العاقل للملفات والخدمات العسكرية** 🎖️\n\nاختر ما ترغب في فتحه من الأزرار أدناه:",
@@ -295,7 +296,6 @@ webhook_requests_handler.register(app, path="/webhook")
 setup_application(app, dp, bot=bot)
 
 async def on_startup(bot: Bot):
-    # مسح الاتصال القديم لمنع أي تعارض وتفعيل الوبهوك الجديد نظيفاً
     await bot.delete_webhook(drop_pending_updates=True)
     
     full_webhook_url = f"{WEBHOOK_URL}/webhook"
@@ -312,7 +312,6 @@ async def main():
     await site.start()
     print(f"Server started on port {port}")
     
-    # Keep the server running forever in webhook mode
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
