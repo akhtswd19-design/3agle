@@ -21,6 +21,7 @@ dp = Dispatcher()
 PRODUCTS_FILE = "products.json"
 REVIEWS_FILE = "reviews.json"
 TICKETS_FILE = "tickets.json"
+STATS_FILE = "stats.json"
 
 def load_data(file, default):
     if os.path.exists(file):
@@ -32,7 +33,7 @@ def save_data(file, data):
     with open(file, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# Initial sample data
+# Initial sample data & stats
 products = load_data(PRODUCTS_FILE, [
     {
         "id": 1,
@@ -51,7 +52,7 @@ reviews = load_data(REVIEWS_FILE, [
 ])
 
 tickets = load_data(TICKETS_FILE, [])
-stats = {"total_sales": 0, "total_stars": 0}
+stats = load_data(STATS_FILE, {"total_sales": 0, "total_stars": 0})
 
 # Webhook & Server Setup
 app = web.Application()
@@ -132,10 +133,9 @@ async def add_product(request):
     products.append(new_prod)
     save_data(PRODUCTS_FILE, products)
 
-    # Broadcast notification to all users (Simulated broadcast message)
     try:
         asyncio.create_task(broadcast_new_product(new_prod))
-    except Exception as e:
+    except Exception:
         pass
 
     return web.json_response({"success": True})
@@ -189,11 +189,11 @@ async def create_ticket(request):
     tickets.append(new_t)
     save_data(TICKETS_FILE, tickets)
 
-    # Send alert to Admin via Telegram
     try:
         await bot.send_message(
             ADMIN_ID,
-            f"📩 **تذكرة دعم فني جديدة**\nالعميل: {new_t['user_name']} (ID: {new_t['user_id']})\nالرسالة: {new_t['message']}"
+            f"📩 **تذكرة دعم فني جديدة**\nالعميل: {new_t['user_name']} (ID: {new_t['user_id']})\nالرسالة: {new_t['message']}",
+            parse_mode="Markdown"
         )
     except Exception:
         pass
@@ -218,7 +218,7 @@ async def get_admin_stats(request):
 
 async def broadcast_new_product(prod):
     msg = f"🌟 **منتج جديد تم إضافته في متجر العاقل!**\n\n📌 **{prod['title']}**\n📝 {prod['description']}\n💰 السعر: {prod['price_sar']} ر.س (⭐️ {prod['stars_price']} نجمة)"
-    await bot.send_message(ADMIN_ID, msg)
+    await bot.send_message(ADMIN_ID, msg, parse_mode="Markdown")
 
 # Bot Commands & Payment Processors
 @dp.message(Command("start"))
@@ -264,6 +264,7 @@ async def process_successful_payment(message: types.Message):
     if prod:
         stats["total_sales"] += 1
         stats["total_stars"] += prod['stars_price']
+        save_data(STATS_FILE, stats)
 
         await message.answer(
             f"✅ **تم استلام الدفع بنجاح! شكراً لثقتك بمتجر العاقل.**\n\n"
@@ -295,14 +296,13 @@ webhook_requests_handler = SimpleRequestHandler(
 webhook_requests_handler.register(app, path="/webhook")
 setup_application(app, dp, bot=bot)
 
-async def on_startup(bot: Bot):
+async def on_startup(app_instance):
     await bot.delete_webhook(drop_pending_updates=True)
-    
     full_webhook_url = f"{WEBHOOK_URL}/webhook"
     await bot.set_webhook(full_webhook_url)
     print(f"Webhook set to: {full_webhook_url}")
 
-app.on_startup.append(lambda app: on_startup(bot))
+app.on_startup.append(on_startup)
 
 async def main():
     port = int(os.getenv("PORT", 10000))
